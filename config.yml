@@ -1,0 +1,26 @@
+gns3_server: "10.255.255.11"
+gns3_port: "3080"
+project_name: "test"
+nodes:
+  - appliance_name: "Ethernet switch"
+    instances:
+      - x: 0
+        y: 0
+  - appliance_name: "VyOS 1.1.8"
+    instances:
+      - x: -200
+        y: 0
+      - x: 200
+        y: 0
+
+links:
+  -
+    - name: "Ethernetswitch-1"
+      interface: 1
+    - name: "VyOS1.1.8-1"
+      interface: 0
+  -
+    - name: "Ethernetswitch-1"
+      interface: 2
+    - name: "VyOS1.1.8-2"
+      interface: 2
