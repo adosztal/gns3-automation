@@ -3,24 +3,30 @@ gns3_port: "3080"
 project_name: "test"
 nodes:
   - appliance_name: "Ethernet switch"
+    os: "none"
     instances:
       - x: 0
         y: 0
-  - appliance_name: "VyOS 1.1.8"
+  - appliance_name: "Cisco NX-OSv 9000 7.0.3.I7.3"
+    os: "nxos"
     instances:
       - x: -200
         y: 0
+        ip: "192.168.1.11/24"
+        gw: "192.168.1.1"
       - x: 200
         y: 0
+        ip: "192.168.1.12/24"
+        gw: "192.168.1.1"
 
 links:
   -
     - name: "Ethernetswitch-1"
       interface: 1
-    - name: "VyOS1.1.8-1"
+    - name: "CiscoNX-OSv90007.0.3.I7.3-1"
       interface: 0
   -
     - name: "Ethernetswitch-1"
       interface: 2
-    - name: "VyOS1.1.8-2"
-      interface: 2
+    - name: "CiscoNX-OSv90007.0.3.I7.3-2"
+      interface: 0

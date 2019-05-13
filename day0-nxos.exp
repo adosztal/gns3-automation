@@ -1,0 +1,49 @@
+set gns3_host [lindex $argv 0];
+set port [lindex $argv 1];
+set hostname [lindex $argv 2];
+set mgmt_ip [lindex $argv 3];
+set mgmt_gw [lindex $argv 4];
+
+set timeout 600
+log_user 0
+
+spawn telnet $gns3_host $port
+
+expect "POAP-2-POAP_DHCP_DISCOVER_START"
+send "y\n"
+
+expect "Do you want to enforce secure password standard"
+send "n\n"
+
+expect "Enter the password"
+send "admin\n"
+
+expect "Confirm the password"
+send "admin\n"
+
+expect "Would you like to enter the basic configuration dialog"
+send "n\n"
+
+expect "login:"
+send "admin\n"
+
+expect "Password:"
+send "admin\n"
+
+expect "switch#"
+send "conf t\n"
+
+expect "switch"
+send "hostname $hostname\n"
+
+expect "$hostname"
+send "interface mgmt0\n"
+
+expect "$hostname"
+send "ip address $mgmt_ip\n"
+
+expect "$hostname"
+send "end\n"
+
+expect "$hostname"
+send "exit\n"

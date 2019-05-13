@@ -3,8 +3,9 @@ This script creates a GNS3 project, adds nodes, interconnect them, and finally b
 """
 
 from __future__ import print_function
-import argparse
 from json import dumps
+from subprocess import call
+from time import sleep
 from requests import get, post, delete
 from yaml import safe_dump, load
 
@@ -80,8 +81,8 @@ def add_nodes():
             instance_seq += 1
 
 
-    ### Retrieving all nodes in the project, the assigning node IDs by searching the node's name,
-    ### then appending the config with them.
+    ### Retrieving all nodes in the project, the assigning node IDs and console port numbers
+    ### by searching the node's name, then appending the config with them.
     url = "http://%s:%s/v2/projects/%s/nodes" % \
            (CONFIG["gns3_server"], CONFIG["gns3_port"], CONFIG["project_id"])
     response = get(url)
@@ -91,6 +92,8 @@ def add_nodes():
         for instance in appliance["instances"]:
             instance["node_id"] = next((item["node_id"] \
                                   for item in body if item["name"] == instance["name"]), None)
+            instance["console"] = next((item["console"] \
+                                  for item in body if item["name"] == instance["name"]), None)
 
 
 
@@ -98,7 +101,6 @@ def add_links():
     """
     Creating links between the nodes and their interfaces defined in the config
     """
-
 
     for link in CONFIG["links"]:
         for member in link:
@@ -138,38 +140,60 @@ def start_nodes():
     """
     url = "http://%s:%s/v2/projects/%s/nodes/start" % \
             (CONFIG["gns3_server"], CONFIG["gns3_port"], CONFIG["project_id"])
-    response = post(url)
+    post(url)
+    # Wait 10s for nodes to start booting
+    sleep(10)
 
-    
+
+
+def day0_config():
+    """
+    Deploying Day-0 configuration
+    """
+    for appliance in CONFIG["nodes"]:
+        if appliance["os"] != "none":
+            for instance in appliance["instances"]:
+                expect_cmd = ["expect", "day0-%s.exp" % appliance["os"], CONFIG["gns3_server"], \
+                              str(instance["console"]), appliance["os"] + \
+                              str(appliance["instances"].index(instance) + 1), \
+                              instance["ip"], instance["gw"], ">/dev/null"]
+                call(expect_cmd)
+
+
+
+
+
 if __name__ == "__main__":
 
-    ### Checking for debug mode
-    PARSER = argparse.ArgumentParser(description=\
-             "Automated GNS3 topology deployment for CI/CD pipelines")
-    PARSER.add_argument("--debug", action="store_true",
-                        help="Debug mode that creates a YAML file with the parsed config.")
-    ARGS = PARSER.parse_args()
-
     ### Loading config file
-    with open("config.yml") as config_file:
+    with open("topology_config.yml") as config_file:
         CONFIG = load(config_file)
 
     ### Create project and add its ID to the config
+    print("Creating GNS3 project")
     create_project(CONFIG["project_name"])
 
     ### Add appliance IDs to the config
+    print("Retrieving appliance IDs")
     assign_appliance_id()
 
     ### Add nodes to the topology
+    print("Adding nodes")
     add_nodes()
 
     ### Create links between the nodes
+    print("Adding links")
     add_links()
 
     ### Start nodes
+    print("Starting nodes")
     start_nodes()
 
-    ### Dump final config into "topology.yml"
-    if ARGS.debug is True:
-        with open("topology.yml", 'w+') as topology_file:
-            safe_dump(CONFIG, topology_file, default_flow_style=False)
+    ### Day-0 configuration
+    print("Applying Day-0 configuration")
+    day0_config()
+
+    ### Dump final config into "topology_full.yml"
+    print("Saving final topology config.")
+    with open("topology_full.yml", 'w+') as topology_file:
+        safe_dump(CONFIG, topology_file, default_flow_style=False)
