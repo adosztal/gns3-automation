@@ -1,6 +1,8 @@
 gns3_server: "10.255.255.11"
 gns3_port: "3080"
-project_name: "test"
+
+project_name: "NX-OS mgmt network"
+
 nodes:
   - appliance_name: "Ethernet switch"
     os: "none"

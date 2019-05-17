@@ -18,8 +18,13 @@ def create_project(name):
     ### Finding the project ID if a project with the given name exists.
     url = "http://%s:%s/v2/projects" % (CONFIG["gns3_server"], CONFIG["gns3_port"])
     response = get(url)
-    body = response.json()
-    project = next((item for item in body if item["name"] == "test"), None)
+    if response.status_code == 200:
+        body = response.json()
+        project = next((item for item in body if item["name"] == CONFIG["project_name"]), None)
+    else:
+        print("Received HTTP error %d when checking if the project already exists! Exiting." % \
+               response.status_code)
+        exit(1)
 
     ### Deleting the project if it already exists.
     if project != None:
@@ -27,16 +32,22 @@ def create_project(name):
         url = "http://%s:%s/v2/projects/%s" % \
               (CONFIG["gns3_server"], CONFIG["gns3_port"], delete_project_id)
         response = delete(url)
+        if response.status_code != 204:
+            print("Received HTTP error %d when deleting the existing project! Exiting." % response.status_code)
+            exit(1)
 
     ### (Re)creating the project
     url = "http://%s:%s/v2/projects" % (CONFIG["gns3_server"], CONFIG["gns3_port"])
     data = {"name": name}
     data_json = dumps(data)
     response = post(url, data=data_json)
-    body = response.json()
-
-    ### Adding the project ID to the config
-    CONFIG["project_id"] = body["project_id"]
+    if response.status_code == 201:
+        body = response.json()
+        # Adding the project ID to the config
+        CONFIG["project_id"] = body["project_id"]
+    else:
+        print("Received HTTP error %d when creating the project! Exiting." % response.status_code)
+        exit(1)
 
 
 
@@ -48,13 +59,17 @@ def assign_appliance_id():
     node_seq = 0
     url = "http://%s:%s/v2/appliances" % (CONFIG["gns3_server"], CONFIG["gns3_port"])
     response = get(url)
-    body = response.json()
 
-    for node in CONFIG["nodes"]:
-        node_dict = next((item for item in body if item["name"] == node["appliance_name"]), None)
-        node_appliance_id = node_dict["appliance_id"]
-        CONFIG["nodes"][node_seq]["appliance_id"] = node_appliance_id
-        node_seq += 1
+    if response.status_code == 200:
+        body = response.json()
+        for node in CONFIG["nodes"]:
+            node_dict = next((item for item in body if item["name"] == node["appliance_name"]), None)
+            node_appliance_id = node_dict["appliance_id"]
+            CONFIG["nodes"][node_seq]["appliance_id"] = node_appliance_id
+            node_seq += 1
+    else:
+        print("Received HTTP error %d when retrieving appliances! Exiting." % response.status_code)
+        exit(1)
 
 
 
@@ -78,7 +93,13 @@ def add_nodes():
             data = {"compute_id": "local", "x": instance["x"], "y": instance["y"]}
             data_json = dumps(data)
             response = post(url, data=data_json)
-            instance_seq += 1
+            if response.status_code == 201:
+                instance_seq += 1
+            else:
+                print("Received HTTP error %d when adding node %s! Exiting." % \
+                     (response.status_code, instance["name"]))
+                exit(1)
+
 
 
     ### Retrieving all nodes in the project, the assigning node IDs and console port numbers
@@ -86,14 +107,19 @@ def add_nodes():
     url = "http://%s:%s/v2/projects/%s/nodes" % \
            (CONFIG["gns3_server"], CONFIG["gns3_port"], CONFIG["project_id"])
     response = get(url)
-    body = response.json()
+    
+    if response.status_code == 200:
+        body = response.json()
+        for appliance in CONFIG["nodes"]:
+            for instance in appliance["instances"]:
+                instance["node_id"] = next((item["node_id"] \
+                                    for item in body if item["name"] == instance["name"]), None)
+                instance["console"] = next((item["console"] \
+                                    for item in body if item["name"] == instance["name"]), None)
+    else:
+        print("Received HTTP error %d when retrieving nodes! Exiting." % response.status_code)
+        exit(1)
 
-    for appliance in CONFIG["nodes"]:
-        for instance in appliance["instances"]:
-            instance["node_id"] = next((item["node_id"] \
-                                  for item in body if item["name"] == instance["name"]), None)
-            instance["console"] = next((item["console"] \
-                                  for item in body if item["name"] == instance["name"]), None)
 
 
 
@@ -130,7 +156,12 @@ def add_links():
 
         data_json = dumps(data)
         response = post(url, data=data_json)
-        body = response.json()
+        if response.status_code != 201:
+            print("Error %d when creating link %s adapter %s port %s -- %s adapter %s port %s" % \
+                 (response.status_code, \
+                  link[0]["node_id"], link[0]["adapter_number"], link[0]["port_number"], \
+                  link[1]["node_id"], link[1]["adapter_number"], link[1]["port_number"]))
+            exit(1)
 
 
 
@@ -140,9 +171,14 @@ def start_nodes():
     """
     url = "http://%s:%s/v2/projects/%s/nodes/start" % \
             (CONFIG["gns3_server"], CONFIG["gns3_port"], CONFIG["project_id"])
-    post(url)
-    # Wait 10s for nodes to start booting
-    sleep(10)
+    response = post(url)
+    if response.status_code == 204:
+        # Wait 10s for nodes to start booting
+        sleep(10)
+    else:
+        print("Received HTTP error %d when starting nodes! Exiting." % response.status_code)
+        exit(1)
+
 
 
 
