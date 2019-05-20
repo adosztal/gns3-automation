@@ -100,8 +100,6 @@ def add_nodes():
                      (response.status_code, instance["name"]))
                 exit(1)
 
-
-
     ### Retrieving all nodes in the project, the assigning node IDs and console port numbers
     ### by searching the node's name, then appending the config with them.
     url = "http://%s:%s/v2/projects/%s/nodes" % \
@@ -119,7 +117,6 @@ def add_nodes():
     else:
         print("Received HTTP error %d when retrieving nodes! Exiting." % response.status_code)
         exit(1)
-
 
 
 
@@ -178,7 +175,6 @@ def start_nodes():
     else:
         print("Received HTTP error %d when starting nodes! Exiting." % response.status_code)
         exit(1)
-
 
 
 

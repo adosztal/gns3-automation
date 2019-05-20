@@ -43,6 +43,12 @@ expect "$hostname"
 send "ip address $mgmt_ip\n"
 
 expect "$hostname"
+send "vrf context management\n"
+
+expect "$hostname"
+send "ip route 0.0.0.0/0 $mgmt_gw\n"
+
+expect "$hostname"
 send "end\n"
 
 expect "$hostname"

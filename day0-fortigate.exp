@@ -1,0 +1,61 @@
+set gns3_host [lindex $argv 0];
+set port [lindex $argv 1];
+set hostname [lindex $argv 2];
+set mgmt_ip [lindex $argv 3];
+set mgmt_gw [lindex $argv 4];
+
+set timeout 600
+log_user 0
+
+spawn telnet $gns3_host $port
+
+expect "login:"
+send "admin\n"
+
+expect "Password"
+send "\n"
+
+expect "FortiGate-"
+send "config system global\n"
+
+expect "FortiGate-"
+send "set hostname $hostname\n"
+
+expect "FortiGate-"
+send "end\n"
+
+expect "$hostname"
+send "config system interface\n"
+
+expect "$hostname"
+send "edit port1\n"
+
+expect "$hostname"
+send "set mode static\n"
+
+expect "$hostname"
+send "set ip $mgmt_ip\n"
+
+expect "$hostname"
+send "end\n"
+
+expect "$hostname"
+send "config router static\n"
+
+expect "$hostname"
+send "edit 0\n"
+
+expect "$hostname"
+send "set device port1\n"
+
+expect "$hostname"
+send "set dst 0.0.0.0/0\n"
+
+expect "$hostname"
+send "set gateway $mgmt_gw\n"
+
+expect "$hostname"
+send "end\n"
+
+expect "$hostname"
+send "exit\n"

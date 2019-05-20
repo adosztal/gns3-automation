@@ -15,7 +15,7 @@ send "n\n"
 expect "Would you like to terminate autoinstall"
 send "y\n"
 
-sleep 10
+sleep 20
 send "\n"
 
 expect "Router>"
@@ -28,13 +28,37 @@ expect "Router#"
 send "hostname $hostname\n"
 
 expect "$hostname"
+send "exit\n"
+
+expect "$hostname"
+send "vrf definition management\n"
+
+expect "$hostname"
+send "description Management VRF\n"
+
+expect "$hostname"
+send "address-family ipv4 unicast\n"
+
+expect "$hostname"
+send "exit\n"
+
+expect "$hostname"
+send "exit\n"
+
+expect "$hostname"
 send "interface gi1\n"
+
+expect "$hostname"
+send "vrf forwarding management\n"
 
 expect "$hostname"
 send "ip address $mgmt_ip\n"
 
 expect "$hostname"
 send "no shut\n"
+
+expect "$hostname"
+send "ip route vrf management 0.0.0.0 0.0.0.0 $mgmt_gw\n"
 
 expect "$hostname"
 send "end\n"
