@@ -36,7 +36,8 @@ def create_project(name):
               (CONFIG["gns3_server"], CONFIG["gns3_port"], delete_project_id)
         response = delete(url)
         if response.status_code != 204:
-            print("Received HTTP error %d when deleting the existing project! Exiting." % response.status_code)
+            print("Received HTTP error %d when deleting the existing project! Exiting." \
+                  % response.status_code)
             exit(1)
 
     ### (Re)creating the project
@@ -108,7 +109,7 @@ def add_nodes():
     url = "http://%s:%s/v2/projects/%s/nodes" % \
            (CONFIG["gns3_server"], CONFIG["gns3_port"], CONFIG["project_id"])
     response = get(url)
-    
+
     if response.status_code == 200:
         body = response.json()
         for appliance in CONFIG["nodes"]:
@@ -243,6 +244,11 @@ if __name__ == "__main__":
     print("Generating Ansible inventory file")
     build_ansible_hosts()
 
+    ### Dump final config into "topology_full.yml"
+    print("Saving final topology config.")
+    with open("topology_full.yml", 'w+') as topology_file:
+        safe_dump(CONFIG, topology_file, default_flow_style=False)
+
     ### Start nodes
     print("Starting nodes")
     start_nodes()
@@ -250,8 +256,3 @@ if __name__ == "__main__":
     ### Day-0 configuration
     print("Applying Day-0 configuration")
     day0_config()
-
-    ### Dump final config into "topology_full.yml"
-    print("Saving final topology config.")
-    with open("topology_full.yml", 'w+') as topology_file:
-        safe_dump(CONFIG, topology_file, default_flow_style=False)
