@@ -1,11 +1,14 @@
 """
-This script creates a GNS3 project, adds nodes, interconnect them, and finally boots all of them.
+This script creates a GNS3 project, adds nodes, interconnect and boots all of them, then
+applies Day-0 configuration to them. It also creates an Ansible inventory that can be
+used for further configuration.
 """
 
 from __future__ import print_function
 from json import dumps
 from subprocess import call
 from time import sleep
+from re import sub
 from requests import get, post, delete
 from yaml import safe_dump, load
 
@@ -193,6 +196,25 @@ def day0_config():
 
 
 
+def build_ansible_hosts():
+    """
+    Creating an Ansible hosts file from the nodes
+    """
+
+    with open("hosts-%s" % CONFIG["project_name"], "w") as hosts_file:
+        for appliance in CONFIG["nodes"]:
+            if appliance["os"] != "none":
+                # Creating inventory groups based on OS
+                hosts_file.write("[%s]\n" % appliance["os"])
+                for instance in appliance["instances"]:
+                    # Writing the hostname and its IP address to the inventory file. The sub
+                    # function reremoves the /xx or " xxx.xxx.xxx.xxx" portion of the address.
+                    hosts_file.write("%s ansible_host=%s\n" % \
+                                    (instance["name"], sub("/.*$| .*$", "", instance["ip"])))
+                hosts_file.write("\n")
+
+
+
 
 
 if __name__ == "__main__":
@@ -216,6 +238,10 @@ if __name__ == "__main__":
     ### Create links between the nodes
     print("Adding links")
     add_links()
+
+    ### Creating inventory file for Ansible
+    print("Generating Ansible inventory file")
+    build_ansible_hosts()
 
     ### Start nodes
     print("Starting nodes")
