@@ -9,7 +9,7 @@ log_user 0
 
 spawn telnet $gns3_host $port
 
-expect "Would you like to enter the basic configuration dialog"
+expect "Would you like to enter the initial configuration dialog"
 send "n\n"
 
 expect "Would you like to terminate autoinstall"
@@ -24,11 +24,8 @@ send "en\n"
 expect "Router#"
 send "conf t\n"
 
-expect "Router#"
+expect "Router(config)#"
 send "hostname $hostname\n"
-
-expect "$hostname"
-send "exit\n"
 
 expect "$hostname"
 send "vrf definition management\n"

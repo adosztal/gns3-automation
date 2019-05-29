@@ -9,6 +9,13 @@ nodes:
     instances:
       - x: 0
         y: 0
+  - appliance_name: "Cisco CSR1000v 16.7.1"
+    os: "csr1kv"
+    instances:
+      - x: 0
+        y: -170
+        ip: "192.168.1.13/24"
+        gw: "192.168.1.1"
   - appliance_name: "Cisco NX-OSv 9000 7.0.3.I7.3"
     os: "nxos"
     instances:
@@ -31,4 +38,9 @@ links:
     - name: "Ethernetswitch-1"
       interface: 2
     - name: "CiscoNX-OSv90007.0.3.I7.3-2"
+      interface: 0
+  -
+    - name: "Ethernetswitch-1"
+      interface: 3
+    - name: "CiscoCSR1000v16.7.1-1"
       interface: 0
