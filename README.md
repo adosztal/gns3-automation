@@ -12,7 +12,8 @@ Based on the configuration file (topology_config.yml) the deploy_topology.py Pyt
 5. Boots the nodes.
 
 Then it launches Expect scripts to apply a simple Day-0 configuration (hostname, management IP address, default gateway for management). The reason Expect is used is because there is no other way to create a multi-vendor/multi-device solution.
-Example: NX-OS support POAP but in order to create its configuration file, we need to know its serial number. But how do we get this information for a newly created VM? We boot it, go into the console, and look up the information. But then why not configure it in that first step instead of making things complicated?
+
+Example: NX-OS supports POAP but in order to create its configuration file, we need to know its serial number. But how do we get this information for a newly created VM? We boot it, go into the console, and look up the information. But then why not configure it in that first step instead of making things complicated?
 
 This video shows the script in action: [https://www.youtube.com/watch?v=6UnkgeiMaUs](https://www.youtube.com/watch?v=6UnkgeiMaUs)
 

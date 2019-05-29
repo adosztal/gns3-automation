@@ -14,7 +14,7 @@ nodes:
     instances:
       - x: 0
         y: -170
-        ip: "192.168.1.13/24"
+        ip: "192.168.1.13 255.255.255.0"
         gw: "192.168.1.1"
   - appliance_name: "Cisco NX-OSv 9000 7.0.3.I7.3"
     os: "nxos"
