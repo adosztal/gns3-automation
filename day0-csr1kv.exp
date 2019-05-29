@@ -5,7 +5,7 @@ set mgmt_ip [lindex $argv 3];
 set mgmt_gw [lindex $argv 4];
 
 set timeout 600
-log_user 1
+log_user 0
 
 spawn telnet $gns3_host $port
 
